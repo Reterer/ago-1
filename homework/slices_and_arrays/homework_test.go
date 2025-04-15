@@ -17,12 +17,12 @@ type CircularQueue[T Number] struct {
 	values []T
 	first  int // первый элемент в очереди
 	end    int // следующий свободный элемент
+	size   int
 }
 
 func NewCircularQueue[T Number](size int) CircularQueue[T] {
 	return CircularQueue[T]{
 		values: make([]T, size),
-		first:  -1, // Если в циклической очереди нет элементов, то first принимает значение -1
 	}
 }
 
@@ -31,15 +31,9 @@ func (q *CircularQueue[T]) Push(value T) bool {
 		return false
 	}
 
-	// Если в очереди нет элементов, то начинаем заполнять её сначала
-	if q.first == -1 {
-		q.first = 0
-		q.end = 0
-	}
-
 	q.values[q.end] = value
-
 	q.end = q.IncIdx(q.end)
+	q.size++
 
 	return true
 }
@@ -50,11 +44,7 @@ func (q *CircularQueue[T]) Pop() bool {
 	}
 
 	q.first = q.IncIdx(q.first)
-
-	// Очередь стала пустой
-	if q.first == q.end {
-		q.first = -1
-	}
+	q.size--
 
 	return true
 }
@@ -77,11 +67,11 @@ func (q *CircularQueue[T]) Back() T {
 }
 
 func (q *CircularQueue[T]) Empty() bool {
-	return q.first == -1
+	return q.size == 0
 }
 
 func (q *CircularQueue[T]) Full() bool {
-	return q.first == q.end
+	return q.size == len(q.values)
 }
 
 func (q *CircularQueue[T]) IncIdx(idx int) int {
