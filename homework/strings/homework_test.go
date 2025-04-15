@@ -11,27 +11,55 @@ import (
 type COWBuffer struct {
 	data []byte
 	refs *int
-	// need to implement
 }
 
 func NewCOWBuffer(data []byte) COWBuffer {
-	return COWBuffer{} // need to implement
+	return COWBuffer{
+		data: data,
+		refs: new(int),
+	}
 }
 
 func (b *COWBuffer) Clone() COWBuffer {
-	return COWBuffer{} // need to implement
+	*b.refs++
+
+	return COWBuffer{
+		data: b.data,
+		refs: b.refs,
+	}
 }
 
 func (b *COWBuffer) Close() {
-	// need to implement
+	*b.refs--
+
+	b.refs = new(int)
+	b.data = nil
 }
 
 func (b *COWBuffer) Update(index int, value byte) bool {
-	return false // need to implement
+	if index < 0 || index >= len(b.data) {
+		return false
+	}
+
+	if *b.refs > 0 {
+		newData := make([]byte, len(b.data))
+		copy(newData, b.data)
+
+		*b.refs--
+		b.refs = new(int)
+		b.data = newData
+	}
+
+	b.data[index] = value
+	return true
 }
 
 func (b *COWBuffer) String() string {
-	return "" // need to implement
+	if len(b.data) == 0 {
+		return ""
+	}
+
+	return unsafe.String(unsafe.SliceData(b.data), len(b.data))
 }
 
 func TestCOWBuffer(t *testing.T) {
