@@ -31,6 +31,8 @@ func (b *COWBuffer) Clone() COWBuffer {
 
 func (b *COWBuffer) Close() {
 	*b.refs--
+
+	b.refs = new(int)
 	b.data = nil
 }
 
