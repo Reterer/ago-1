@@ -9,32 +9,142 @@ import (
 
 // go test -v homework_test.go
 
+type node struct {
+	key   int
+	val   int
+	left  *node
+	right *node
+}
+
+func (p *node) insert(newNode *node) {
+	if newNode == nil {
+		return
+	}
+
+	if newNode.key < p.key {
+		if p.left != nil {
+			p.left.insert(newNode)
+			return
+		}
+
+		p.left = newNode
+		return
+	}
+
+	if p.right != nil {
+		p.right.insert(newNode)
+		return
+	}
+
+	p.right = newNode
+}
+
+func (p *node) findParent(key int) *node {
+	if key < p.key {
+		if p.left == nil || p.left.key == key {
+			return p
+		}
+		return p.left.findParent(key)
+	}
+
+	if p.right == nil || p.right.key == key {
+		return p
+	}
+	return p.right.findParent(key)
+}
+
+func (n *node) forEach(action func(int, int)) {
+	if n == nil {
+		return
+	}
+
+	n.left.forEach(action)
+	action(n.key, n.val)
+	n.right.forEach(action)
+}
+
 type OrderedMap struct {
-	// need to implement
+	root *node
+	size int
 }
 
 func NewOrderedMap() OrderedMap {
-	return OrderedMap{} // need to implement
+	return OrderedMap{
+		root: nil,
+		size: 0,
+	}
 }
 
 func (m *OrderedMap) Insert(key, value int) {
-	// need to implement
+	newNode := &node{
+		key: key,
+		val: value,
+	}
+
+	if m.root == nil {
+		m.root = newNode
+	} else {
+		m.root.insert(newNode)
+	}
+
+	m.size++
 }
 
 func (m *OrderedMap) Erase(key int) {
-	// need to implement
+	if m.root == nil {
+		return
+	}
+
+	if m.root.key == key {
+		root := m.root
+		m.root = root.right
+		m.root.insert(root.left)
+		m.size--
+		return
+	}
+
+	p := m.root.findParent(key)
+	if key < p.key {
+		if p.left == nil {
+			return
+		}
+
+		left := p.left
+		p.left = left.right
+		p.left.insert(left.left)
+		m.size--
+		return
+	}
+
+	if p.right == nil {
+		return
+	}
+
+	right := p.right
+	p.right = right.left
+	p.right.insert(right.right)
+	m.size--
 }
 
 func (m *OrderedMap) Contains(key int) bool {
-	return false // need to implement
+	if m.root != nil && m.root.key == key {
+		return true
+	}
+
+	p := m.root.findParent(key)
+	if key < p.key {
+		return p.left != nil && p.left.key == key
+	}
+
+	return p.right != nil && p.right.key == key
 }
 
 func (m *OrderedMap) Size() int {
-	return 0 // need to implement
+	return m.size
 }
 
 func (m *OrderedMap) ForEach(action func(int, int)) {
-	// need to implement
+	m.root.forEach(action)
 }
 
 func TestCircularQueue(t *testing.T) {
