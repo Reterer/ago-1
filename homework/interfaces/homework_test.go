@@ -35,7 +35,7 @@ func (c *Container) RegisterType(name string, constructor interface{}) {
 func (c *Container) Resolve(name string) (interface{}, error) {
 	constructor, ok := c.registor[name]
 	if !ok {
-		return nil, errors.New("constructor not exists")
+		return nil, errors.New("constructor is not exists")
 	}
 
 	fn, ok := constructor.(func() any)
