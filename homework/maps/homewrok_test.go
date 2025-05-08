@@ -21,22 +21,13 @@ func (p *node) insert(newNode *node) {
 		return
 	}
 
-	if newNode.key < p.key {
-		if p.left != nil {
-			p.left.insert(newNode)
-			return
-		}
+	parent := p.findParent(newNode.key)
 
-		p.left = newNode
-		return
+	if newNode.key < parent.key {
+		parent.left = newNode
+	} else {
+		parent.right = newNode
 	}
-
-	if p.right != nil {
-		p.right.insert(newNode)
-		return
-	}
-
-	p.right = newNode
 }
 
 func (p *node) findParent(key int) *node {
@@ -69,10 +60,7 @@ type OrderedMap struct {
 }
 
 func NewOrderedMap() OrderedMap {
-	return OrderedMap{
-		root: nil,
-		size: 0,
-	}
+	return OrderedMap{}
 }
 
 func (m *OrderedMap) Insert(key, value int) {
