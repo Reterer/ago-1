@@ -12,79 +12,84 @@ type Option func(*GamePerson)
 
 func WithName(name string) func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		l := copy(person.name[:], []byte(name))
+		// Решил сохранять длину строки, так как так проще и быстрее вытаскивать строку.
+		// К тому же было свободное место в структуре
+		person.dataB = setData(person.dataB, dataB(l), dataBNameLenShift, dataBNameLen)
 	}
 }
 
 func WithCoordinates(x, y, z int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.x = int32(x)
+		person.y = int32(y)
+		person.z = int32(z)
 	}
 }
 
 func WithGold(gold int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.gold = uint32(gold)
 	}
 }
 
 func WithMana(mana int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.dataA = setData(person.dataA, dataA(mana), dataAManaShift, dataAMana)
 	}
 }
 
 func WithHealth(health int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.dataA = setData(person.dataA, dataA(health), dataAHealthShift, dataAHealth)
 	}
 }
 
 func WithRespect(respect int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.dataA = setData(person.dataA, dataA(respect), dataARespectShift, dataARespect)
 	}
 }
 
 func WithStrength(strength int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.dataA = setData(person.dataA, dataA(strength), dataAStrengthShift, dataAStrength)
 	}
 }
 
 func WithExperience(experience int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.dataA = setData(person.dataA, dataA(experience), dataAExpirienceShift, dataAExpirience)
 	}
 }
 
 func WithLevel(level int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.dataB = setData(person.dataB, dataB(level), dataBLevelShift, dataBLevel)
 	}
 }
 
 func WithHouse() func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.dataB = setData(person.dataB, 1, dataBHouseShift, dataBHouse)
 	}
 }
 
 func WithGun() func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.dataB = setData(person.dataB, 1, dataBGunShift, dataBGun)
 	}
 }
 
 func WithFamily() func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.dataB = setData(person.dataB, 1, dataBFamilyShift, dataBFamily)
 	}
 }
 
 func WithType(personType int) func(*GamePerson) {
 	return func(person *GamePerson) {
-		// need to implement
+		person.dataB = setData(person.dataB, dataB(personType), dataBTypeShift, dataBHouse)
 	}
 }
 
@@ -95,87 +100,128 @@ const (
 )
 
 type GamePerson struct {
-	// need to implement
+	name  [42]byte
+	dataB dataB // hosuse | gun | family | type | level | nameLen
+	dataA dataA // mana | health | respect | strength | expirience
+	gold  uint32
+
+	x int32
+	y int32
+	z int32
+}
+
+type dataB uint16
+
+const (
+	dataBHouse   dataB = 0b_00000000_00000001
+	dataBGun     dataB = 0b_00000000_00000010
+	dataBFamily  dataB = 0b_00000000_00000100
+	dataBNameLen dataB = 0b_00000011_11110000
+	dataBLevel   dataB = 0b_00111100_00000000
+	dataBType    dataB = 0b_11000000_00000000
+
+	dataBHouseShift   dataB = 0
+	dataBGunShift     dataB = 1
+	dataBFamilyShift  dataB = 2
+	dataBNameLenShift dataB = 4
+	dataBLevelShift   dataB = 10
+	dataBTypeShift    dataB = 14
+)
+
+type dataA uint32
+
+const (
+	dataAMana       dataA = 0b_00000000_00000000_00000011_11111111
+	dataAHealth     dataA = 0b_00000000_00001111_11111100_00000000
+	dataARespect    dataA = 0b_00000000_11110000_00000000_00000000
+	dataAStrength   dataA = 0b_00001111_00000000_00000000_00000000
+	dataAExpirience dataA = 0b_11110000_00000000_00000000_00000000
+
+	dataAManaShift       dataA = 0
+	dataAHealthShift     dataA = 10
+	dataARespectShift    dataA = 20
+	dataAStrengthShift   dataA = 24
+	dataAExpirienceShift dataA = 28
+)
+
+func setData[T dataA | dataB](data T, value T, shift T, mask T) T {
+	data |= (value << shift) & mask
+	return data
+}
+
+func getData[T dataA | dataB](data T, shift T, mask T) T {
+	return (data & mask) >> shift
 }
 
 func NewGamePerson(options ...Option) GamePerson {
-	// need to implement
-	return GamePerson{}
+	var gp GamePerson
+
+	for _, opt := range options {
+		opt(&gp)
+	}
+
+	return gp
 }
 
 func (p *GamePerson) Name() string {
-	// need to implement
-	return ""
+	l := getData(p.dataB, dataBNameLenShift, dataBNameLen)
+	return string(p.name[:l])
 }
 
 func (p *GamePerson) X() int {
-	// need to implement
-	return 0
+	return int(p.x)
 }
 
 func (p *GamePerson) Y() int {
-	// need to implement
-	return 0
+	return int(p.y)
 }
 
 func (p *GamePerson) Z() int {
-	// need to implement
-	return 0
+	return int(p.z)
 }
 
 func (p *GamePerson) Gold() int {
-	// need to implement
-	return 0
+	return int(p.gold)
 }
 
 func (p *GamePerson) Mana() int {
-	// need to implement
-	return 0
+	return int(getData(p.dataA, dataAManaShift, dataAMana))
 }
 
 func (p *GamePerson) Health() int {
-	// need to implement
-	return 0
+	return int(getData(p.dataA, dataAHealthShift, dataAHealth))
 }
 
 func (p *GamePerson) Respect() int {
-	// need to implement
-	return 0
+	return int(getData(p.dataA, dataARespectShift, dataARespect))
 }
 
 func (p *GamePerson) Strength() int {
-	// need to implement
-	return 0
+	return int(getData(p.dataA, dataAStrengthShift, dataAStrength))
 }
 
 func (p *GamePerson) Experience() int {
-	// need to implement
-	return 0
+	return int(getData(p.dataA, dataAExpirienceShift, dataAExpirience))
 }
 
 func (p *GamePerson) Level() int {
-	// need to implement
-	return 0
+	return int(getData(p.dataB, dataBLevelShift, dataBLevel))
 }
 
 func (p *GamePerson) HasHouse() bool {
-	// need to implement
-	return false
+	return getData(p.dataB, dataBHouseShift, dataBHouse) == 1
 }
 
 func (p *GamePerson) HasGun() bool {
-	// need to implement
-	return false
+	return getData(p.dataB, dataBGunShift, dataBGun) == 1
 }
 
 func (p *GamePerson) HasFamilty() bool {
-	// need to implement
-	return false
+	return getData(p.dataB, dataBFamilyShift, dataBFamily) == 1
 }
 
 func (p *GamePerson) Type() int {
-	// need to implement
-	return 0
+	return int(getData(p.dataB, dataBTypeShift, dataBType))
 }
 
 func TestGamePerson(t *testing.T) {
