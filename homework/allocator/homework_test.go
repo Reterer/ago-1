@@ -10,8 +10,28 @@ import (
 
 // go test -v homework_test.go
 
+// Defragment - Дефрагментирует memory, имзеняет указатели.
+// Предполагается, что:
+//  1. pointers ссылаются только на 1 байт памяти.
+//  2. pointers отсортирован по возрастанию адреса.
+//  3. len(pointers) <= len(memory).
 func Defragment(memory []byte, pointers []unsafe.Pointer) {
-	// need to implement
+	if len(memory) == 0 || len(pointers) == 0 {
+		return
+	}
+
+	for i := range pointers {
+		nextByte := unsafe.Pointer(&memory[i])
+		swapPointersAndValues(&nextByte, &pointers[i])
+	}
+}
+
+func swapPointersAndValues(a, b *unsafe.Pointer) {
+	abyte := (*byte)(*a)
+	bbyte := (*byte)(*b)
+
+	*abyte, *bbyte = *bbyte, *abyte
+	*a, *b = *b, *a
 }
 
 func TestDefragmentation(t *testing.T) {
